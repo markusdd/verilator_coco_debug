@@ -102,7 +102,7 @@ async def test_afifo(dut):
     cocotb.fork(write_fifo(dut, vals))
     cocotb.fork(read_fifo(dut, vals))
     # await ClockCycles(dut.clk_r_i, 1000)  # uncomment this, it will cause to process all 1000 edges at once and exit with pass erroneously
-    await Timer(10000, units="us"). # uncomment this for second scenario where sim gets stuck without the other forked coroutines progressing
+    await Timer(10000, units="us") # uncomment this for second scenario where sim gets stuck without the other forked coroutines progressing
 
 
 
