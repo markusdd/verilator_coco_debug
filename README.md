@@ -2,6 +2,13 @@ Make sure to have verilator 4.100 and cocotob 1.4 with Python 3.7+ in PATH, then
 
 `make`
 
+For a working icarus example:
+
+```
+cd icarus
+make
+```
+
 In Python file look at the bottom.
 You can choose either the option where multiple triggers get processed at once
 without advancing sim time. The other version with the Timer will freeze the simulation after handing back to verilator,
