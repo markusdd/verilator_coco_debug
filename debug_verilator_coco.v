@@ -49,12 +49,12 @@ module debug_verilator_coco (
 
   assign rdata_o = rdata_r;
 
-  always_comb begin : pointer_next_proc
+  always @(*) begin : pointer_next_proc
     rpointer_next_s = rpointer_r + {{ADDR_WIDTH_P{1'b0}}, 1'b1 & ren_i};
     wpointer_next_s = wpointer_r + {{ADDR_WIDTH_P{1'b0}}, 1'b1 & wen_i};
   end
 
-  always_ff @(posedge clk_w_i or negedge rst_w_an_i) begin : w_pointer_proc
+  always @(posedge clk_w_i or negedge rst_w_an_i) begin : w_pointer_proc
     if (rst_w_an_i == 1'b0) begin
       wpointer_r <= {ADDR_WIDTH_P+1{1'b0}};
     end else if (wen_i == 1'b1) begin
@@ -62,7 +62,7 @@ module debug_verilator_coco (
     end
   end
 
-  always_ff @(posedge clk_r_i or negedge rst_r_an_i) begin : r_pointer_proc
+  always @(posedge clk_r_i or negedge rst_r_an_i) begin : r_pointer_proc
     if (rst_r_an_i == 1'b0) begin
       rpointer_r <= {ADDR_WIDTH_P+1{1'b0}};
     end else if (ren_i == 1'b1) begin
