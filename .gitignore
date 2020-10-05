@@ -1,0 +1,8 @@
+**/build
+**/obj_dir
+**/sim_build
+results.xml
+**/__pycache__
+*.vcd
+*.fst
+*.sublime-workspace
