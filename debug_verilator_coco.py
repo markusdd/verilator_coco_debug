@@ -47,9 +47,9 @@ async def test_afifo(dut):
     """ Test that data is being passed across clock domains. """
 
     clk_w = Clock(dut.clk_w_i, 10, units="ns")  # Create a 10ns period clock on port clk
-    cocotb.fork(clk_w.start())  # Start the write clock
+    clk_w_fork = cocotb.fork(clk_w.start())  # Start the write clock
     clk_r = Clock(dut.clk_r_i, 37, units="ns")  # Create a 37ns period clock on port clk
-    cocotb.fork(clk_r.start())  # Start the read clock
+    clk_r_fork = cocotb.fork(clk_r.start())  # Start the read clock
     vals = [random.randrange(1, 2**32) for _ in range(2**16)]
 
     # reset, disable divs
@@ -97,12 +97,32 @@ async def test_afifo(dut):
             await FallingEdge(dut.clk_r_i)
     await FallingEdge(dut.clk_r_i)
 
+    #shut down clocks in preparation for random testing
+    await FallingEdge(dut.clk_r_i)
+    clk_r_fork.kill()
+    await FallingEdge(dut.clk_w_i)
+    clk_w_fork.kill()
+    await Timer(1, units='us')
+
     # randomize
-    cocotb.log.info(f"Test random read/write.")
-    cocotb.fork(write_fifo(dut, vals))
-    cocotb.fork(read_fifo(dut, vals))
-    # await ClockCycles(dut.clk_r_i, 1000)  # uncomment this, it will cause to process all 1000 edges at once and exit with pass erroneously
-    await Timer(10000, units="us") # uncomment this for second scenario where sim gets stuck without the other forked coroutines progressing
+    #for w_ns, r_ns in [(3, 7), (20, 20), (50, 11)]:
+    #for w_ns, r_ns in [(20, 20), (3, 7), (50, 11)]:
+    for w_ns, r_ns in [(50, 11), (3, 7), (20, 20)]:
+        cocotb.log.info(f"Test random read/write. Write Period is {w_ns}ns, read period is {r_ns}ns.")
+        clk_w = Clock(dut.clk_w_i, w_ns, units="ns")
+        clk_w_fork = cocotb.fork(clk_w.start())  # Start the write clock
+        clk_r = Clock(dut.clk_r_i, r_ns, units="ns")
+        clk_r_fork = cocotb.fork(clk_r.start())  # Start the read clock
+        w_fork = cocotb.fork(write_fifo(dut, vals))
+        r_fork = cocotb.fork(read_fifo(dut, vals))
+        await ClockCycles(dut.clk_r_i, 1000)
+        await FallingEdge(dut.clk_w_i)
+        clk_w_fork.kill() # enforce reading until empty
+        await RisingEdge(dut.empty_o)
+        clk_r_fork.kill()
+        w_fork.kill()
+        r_fork.kill()
+        await Timer(1, units='us')
 
 
 
